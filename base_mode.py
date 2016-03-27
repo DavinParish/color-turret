@@ -1,8 +1,7 @@
 from random import choice
 
 import pygame
-import json
-import os
+
 from bullet import Bullet
 from target import Target
 from game import Game
@@ -24,19 +23,12 @@ class Base:
     score = 0
     lives = 5
     level = 1
+
+    # settings
     difficulty = "easy"
 
-    playing = True
-
-    data = {
-        score: 0,
-        lives: 5,
-        level: 1,
-        difficulty: "easy"
-    }
-
     # Other variables //////////////////////////////////////////////
-
+    playing = True
     message = ""
     # number of columns
     num_columns = 15
@@ -44,11 +36,13 @@ class Base:
     num_rows = 22
     TILE_WIDTH = 24
     TILE_HEIGHT = 24
-    filename = "\default"
+    path = "Files\info\\"
+    filename = "default.json"
 
     # BUILD BOARD ////////////////////////////////////////////////
     board = []
     row = []
+    data = {}
     for i in range(num_columns):  # make the right number of columns
         row.append('0')
     for i in range(num_rows):  # make the right number of rows of those columns
@@ -65,6 +59,11 @@ class Base:
     game_bullet = Bullet()
     game_bullet.getPos(num_columns, num_rows)  # position the bullet relative to the size of the screen
     game_target = Target()
+
+    def __init__(self, d):
+        # self.path += self.filename  # condense file path into path variable
+        self.difficulty = d
+
 
     # reset function
     def reset(self):
@@ -129,22 +128,10 @@ class Base:
     def go(self):
         pass  # to be overridden
 
-    def save(self):
-        path = "Files\info" + self.filename  # condense file path into path variable
-        self.game.make_sure_path_exists(path)  # check if path exists and make the directories if it doesn't
-        data_doc = json.load(open(self.filename))  # load the file
-        if os.path.getsize(path) <= 0:  # if the file is empty set up default values
-            # when initializing the json file input default values
-            with open('data.txt', 'w') as outfile:
-                json.dump(self.data, outfile)
-        else:  # otherwise update information
-
-            for index, element in enumerate(data_doc):
-                element[index] = self.data[index]
 
 
 class Reactive(Base):
-    filename = "\\reactive_info"
+    filename = "reactive_info.json"
 
     def go(self):
         playing = self.playing
@@ -161,7 +148,13 @@ class Reactive(Base):
             events = pygame.event.get()
             for event in events:
                 if 'click' in home_btn.handleEvent(event):
-                    display = "home"
+                    self.data = {
+                        "saved_game": True,
+                        "score": self.score,
+                        "lives": self.lives,
+                        "level": self.level,
+                    }
+                    self.game.save(self.path, self.filename, self.data)
                     playing = False
 
                 if event.type == pygame.KEYDOWN:
@@ -197,7 +190,7 @@ class Reactive(Base):
 
 
 class Predictive(Base):
-    filename = "\\predictive_info"
+    filename = "predictive_info.json"
 
     def go(self):
         pass

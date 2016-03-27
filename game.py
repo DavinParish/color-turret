@@ -1,4 +1,5 @@
 import pygame
+import json
 import os
 import errno
 import pygame.font
@@ -30,8 +31,42 @@ class Game:
             screen.blit(text, position)
 
     def make_sure_path_exists(self, path):
+        # if not os.path.exists(path):
+        #     os.makedirs(path)
         try:
             os.makedirs(path)
+            print("//////////////////////////////////////////////////////////")
+            print(path)
+            print("//////////////////////////////////////////////////////////")
+
         except OSError as exception:
+            print("//////////////////////////////////////////////////////////")
+            print("darn")
+            print("//////////////////////////////////////////////////////////")
             if exception.errno != errno.EEXIST:
                 raise
+
+    # creates the file if its not there
+    def initialize_json(self, filename, data):
+        # create the file
+        # input values
+        with open(filename, 'w') as outfile:
+            json.dump(data, outfile)
+
+    # saves the file
+    def save(self, path, filename, data):
+        self.make_sure_path_exists(path)  # check if path exists and make the directories if it doesn't
+
+        with open(path + filename, 'w') as outfile:
+            json.dump(data, outfile)
+        #
+        # TODO see if this is a plausible way of doing this
+        # if not os.path.isfile(filename):  # if the file doesn't exist create it
+        #     self.initialize_json(filename, data)
+        # else:  # otherwise update information
+        #     data_doc = json.load(open(filename))  # load the file
+        #     for index, element in enumerate(data_doc):
+        #         element[index] = data[index]
+        #
+                # # i shouldn't need this with the initialize function
+                # if os.path.getsize(path) <= 0:  # if the file is empty set up default values

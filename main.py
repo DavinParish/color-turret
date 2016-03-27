@@ -20,9 +20,42 @@ pygame.mixer.init()
 pygame.init()
 
 # Variables///////////////////////////////////////////////
+
+
+# Info for saving
+filename = "settings.json"
+path = "Files\settings\\"
+
+# Defaults
+default_info_dict = {
+    "saved_game": False,
+    "score": 0,
+    "lives": 5,
+    "level": 1
+}
+
+default_settings_dict = {
+    "difficulty": "easy",
+    "mode": "reactive"
+}
+
+# settings
+# Check for settings file.
+# if it doesn't exist initialize with default settings
+# otherwise read in the values
+
+# data_doc = json.load(open(path+filename, 'r'))  # load the file
+# for element in data_doc:
+#     difficulty = element["difficulty"]
+#     mode = element["mode"]
+difficulty = "easy"
+mode = "reactive"
+
+# other
+
 display = "home"
 playing = False
-mode = "reactive"
+
 # number of columns
 num_columns = 15
 # number of rows
@@ -31,13 +64,9 @@ TILE_WIDTH = 24
 TILE_HEIGHT = 24
 multiple = 4  # the factor by which to multiply text to get it on the same size scale as the screen
 
-# game variables
-score = 0
-lives = 5
-message = ""
-
 mode_list = ["predictive", "reactive", "t", "family"]
-btn_list = []
+btn_list = []  # might be able to use this for an easy way to draw all mode btns
+
 # BUILD BOARD ////////////////////////////////////////////////
 board = []
 row = []
@@ -53,21 +82,23 @@ screen = pygame.display.set_mode([screen_width, screen_height])
 
 # Instantiations /////////////////////////////////////////
 game = Game()
-reactive_mode = Reactive()
-predictive_mode = Predictive()
+reactive_mode = Reactive(difficulty)
+predictive_mode = Predictive(difficulty)
 # Buttons
 play_btn = PygButton(((screen_width / 2) - 30, screen_height / 2, 60, 30), "Play")
 home_btn = PygButton((5, 5, 60, 30), "Home")
 options_btn = PygButton(((screen_width / 2) - 30, 300, 60, 30), "Options")
 
-predictive_radio = check_button((100, 160, 80, 30), "Predictive")
-reactive_radio = check_button((200, 160, 80, 30), "reactive")
+reactive_radio = check_button((100, 160, 80, 30), "reactive")
+predictive_radio = check_button((200, 160, 80, 30), "Predictive")
 
-# game variables
-game_bullet = Bullet()
-game_bullet.getPos(num_columns, num_rows)  # position the bullet relative to the size of the screen
+# Decide which button is down
+mode_btn_dict = {
+    "reactive": reactive_radio,
+    "predictive": predictive_radio
+}
+mode_btn_dict[mode].buttonDown = True
 
-game_target = Target()
 
 
 #  Functions ///////////////////////////////////////////////////
@@ -105,27 +136,6 @@ def draw_home():
     pygame.display.flip()
 
 
-def draw_game():
-    screen.fill((0, 0, 0))  # fill screen with black
-    for y, array in enumerate(board[2:-2]):  # draw game board
-        for x, symbol in enumerate(array):
-            pygame.draw.rect(screen, (128, 0, 64, 28),
-                             (x * TILE_WIDTH, (y * TILE_HEIGHT) + (TILE_HEIGHT * 2), TILE_WIDTH, TILE_HEIGHT), 1)
-    # draw bullet
-    pygame.draw.rect(screen, game_bullet.color,
-                     (game_bullet.x * TILE_WIDTH, game_bullet.y * TILE_WIDTH, TILE_WIDTH, TILE_HEIGHT))
-    # draw target
-    pygame.draw.rect(screen, game_target.color, (
-        game_target.x * TILE_WIDTH, game_target.y * TILE_WIDTH, TILE_WIDTH * num_columns, 2 * TILE_HEIGHT))
-
-    # Draw info panel
-    home_btn.draw(screen)
-    game.display_box("Score: " + str(score), (80, 10), screen)
-    # draw message center
-    game.display_box(message, (10, screen_height - 30), screen)
-    pygame.display.flip()
-
-
 def draw_options():
     screen.fill((0, 255, 0))  # fill screen with something
 
@@ -156,7 +166,7 @@ def draw_options():
 # Dictionaries //////////////////////////////////////////////////
 display_dict = {
     "home": draw_home,
-    "game": draw_game,
+    # "game": draw_game,
     "options": draw_options,
 }
 
@@ -173,7 +183,6 @@ while 1 == 1:
         # Handle button clicks////////////////////////////
         if 'click' in play_btn.handleEvent(event):
             # Do stuff in response to button click here.
-            display = "game"
             playing = True
 
         elif 'click' in home_btn.handleEvent(event):
@@ -200,8 +209,14 @@ while 1 == 1:
         # Handle key presses//////////////////////////////
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q:
+                setting_dict = {
+                    "difficulty": difficulty,
+                    "mode": mode
+                }
+                game.save(path, filename, setting_dict)
                 quit()
 
         # Handle game loops
         if playing:
             mode_dict[mode].go()
+            playing = False
