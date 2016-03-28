@@ -3,7 +3,7 @@
 
 
 class Bullet:
-    color = (0, 0, 255)  # (0, 0, 0, 255)
+    color = (0, 0, 0)  # (0, 0, 0, 255)
     init_x = 1
     init_y = 1
     x = 1

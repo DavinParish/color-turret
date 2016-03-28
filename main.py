@@ -1,12 +1,7 @@
-from copy import deepcopy
 import json
-from random import choice
 from button import *
-from bullet import Bullet
-from target import Target
 from base_mode import Reactive, Predictive
 import pygame
-import os
 from game import Game
 import pygame.font
 import pygame.event
@@ -19,16 +14,16 @@ pygame.font.init()
 pygame.mixer.init()
 pygame.init()
 
+game = Game()
 # Variables///////////////////////////////////////////////
 
 
 # Info for saving
-filename = "settings.json"
-path = "Files\settings\\"
-
-# Defaults
+settings_filename = "settings.json"
+settings_path = "Files\settings\\"
+info_path = "Files\info\\"
+# Defaults /////////////////////////////////
 default_info_dict = {
-    "saved_game": False,
     "score": 0,
     "lives": 5,
     "level": 1
@@ -36,20 +31,27 @@ default_info_dict = {
 
 default_settings_dict = {
     "difficulty": "easy",
-    "mode": "reactive"
+    "mode": "reactive",
+    "saved_game": False
 }
+mode_list = ["reactive", "predictive", "t", "family"]
+btn_list = []  # might be able to use this for an easy way to draw all mode btns
 
-# settings
+# set up the settings /////////////////////////
 # Check for settings file.
-# if it doesn't exist initialize with default settings
+game.make_sure_path_exists(settings_path, settings_filename, default_settings_dict)
+#
+for m in mode_list:
+    game.check_file(info_path, m + "_info.json", default_info_dict)
+    print(m + "_info.json")
 # otherwise read in the values
 
-# data_doc = json.load(open(path+filename, 'r'))  # load the file
-# for element in data_doc:
-#     difficulty = element["difficulty"]
-#     mode = element["mode"]
-difficulty = "easy"
-mode = "reactive"
+data_doc = json.load(open(settings_path + settings_filename, 'r'))  # load the file
+difficulty = data_doc["difficulty"]
+mode = data_doc["mode"]
+MODE = mode
+print(mode)
+print(difficulty)
 
 # other
 
@@ -64,8 +66,6 @@ TILE_WIDTH = 24
 TILE_HEIGHT = 24
 multiple = 4  # the factor by which to multiply text to get it on the same size scale as the screen
 
-mode_list = ["predictive", "reactive", "t", "family"]
-btn_list = []  # might be able to use this for an easy way to draw all mode btns
 
 # BUILD BOARD ////////////////////////////////////////////////
 board = []
@@ -81,13 +81,14 @@ screen_height = TILE_HEIGHT * num_rows
 screen = pygame.display.set_mode([screen_width, screen_height])
 
 # Instantiations /////////////////////////////////////////
-game = Game()
+# modes
 reactive_mode = Reactive(difficulty)
 predictive_mode = Predictive(difficulty)
 # Buttons
 play_btn = PygButton(((screen_width / 2) - 30, screen_height / 2, 60, 30), "Play")
 home_btn = PygButton((5, 5, 60, 30), "Home")
 options_btn = PygButton(((screen_width / 2) - 30, 300, 60, 30), "Options")
+new_btn = PygButton(((screen_width / 2) - 30, 260, len("new game")*10, 30), "New Game")
 
 reactive_radio = check_button((100, 160, 80, 30), "reactive")
 predictive_radio = check_button((200, 160, 80, 30), "Predictive")
@@ -98,7 +99,6 @@ mode_btn_dict = {
     "predictive": predictive_radio
 }
 mode_btn_dict[mode].buttonDown = True
-
 
 
 #  Functions ///////////////////////////////////////////////////
@@ -123,11 +123,23 @@ def make_button(name, x, y, caption):
 
 
 # DISPLAYS /////////////////////////////////////////////////////
-def draw_home():
+def draw_home(game_mode):
     screen.fill((0, 0, 255))  # fill screen with black
     for y, array in enumerate(board):  # draw grid
         for x, symbol in enumerate(array):
             pygame.draw.rect(screen, (128, 0, 64, 28), (x * TILE_WIDTH, y * TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT), 1)
+    # Check to see if there is a saved game
+    info = json.load(open("Files\info\\" + game_mode + "_info.json", 'r'))  # load the file
+    if default_info_dict["score"] != info["score"] or default_info_dict["level"] != info["level"]:
+        # change the play button text to resume button
+        play_btn.caption = "resume"
+        # position new and resume button
+        play_btn._rect = pygame.Rect(((screen_width / 2) - 30, (screen_height / 2)-40, 60, 30))
+        new_btn._rect = pygame.Rect(((screen_width / 2) - 30, (screen_height / 2), 60, 30))
+        # draw new button
+        new_btn.draw(screen)
+    else:
+        play_btn.caption = "Play"
 
     game.display_box("ColorWheel", ((screen_width / 2) - size_of_text("options Menu"), 0), screen)
 
@@ -136,7 +148,7 @@ def draw_home():
     pygame.display.flip()
 
 
-def draw_options():
+def draw_options(m):
     screen.fill((0, 255, 0))  # fill screen with something
 
     # draw header
@@ -166,7 +178,6 @@ def draw_options():
 # Dictionaries //////////////////////////////////////////////////
 display_dict = {
     "home": draw_home,
-    # "game": draw_game,
     "options": draw_options,
 }
 
@@ -177,7 +188,7 @@ mode_dict = {
 
 # Main Loop ///////////////////////////////////////////////////
 while 1 == 1:
-    display_dict[display]()
+    display_dict[display](mode)
     events = pygame.event.get()
     for event in events:
         # Handle button clicks////////////////////////////
@@ -201,6 +212,10 @@ while 1 == 1:
             reactive_radio.buttonDown = True
             playing = False
             mode = "reactive"
+        elif 'click' in new_btn.handleEvent(event):
+            game.save(info_path, MODE + "_info.json", default_info_dict)
+            playing = True
+
         # TODO see if this is plausible
         for btn in btn_list:
             if 'click' in btn.handleEvent(event):
@@ -213,7 +228,7 @@ while 1 == 1:
                     "difficulty": difficulty,
                     "mode": mode
                 }
-                game.save(path, filename, setting_dict)
+                game.save(settings_path, settings_filename, setting_dict)
                 quit()
 
         # Handle game loops

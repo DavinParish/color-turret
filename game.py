@@ -30,11 +30,19 @@ class Game:
 
             screen.blit(text, position)
 
-    def make_sure_path_exists(self, path):
+    def check_file(self, path, filename, data):
+        self.make_sure_path_exists(path, filename, data)
+        if not os.path.isfile(path+filename):
+            with open(path + filename, 'w') as outfile:
+                json.dump(data, outfile)
+
+    def make_sure_path_exists(self, path, filename, data):
         # if not os.path.exists(path):
         #     os.makedirs(path)
         try:
             os.makedirs(path)
+            with open(path + filename, 'w') as outfile:
+                json.dump(data, outfile)
             print("//////////////////////////////////////////////////////////")
             print(path)
             print("//////////////////////////////////////////////////////////")
@@ -55,7 +63,7 @@ class Game:
 
     # saves the file
     def save(self, path, filename, data):
-        self.make_sure_path_exists(path)  # check if path exists and make the directories if it doesn't
+        self.make_sure_path_exists(path, filename, data)  # check if path exists and make the directories if it doesn't
 
         with open(path + filename, 'w') as outfile:
             json.dump(data, outfile)

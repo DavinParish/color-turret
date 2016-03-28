@@ -1,5 +1,5 @@
 from random import choice
-
+import json
 import pygame
 
 from bullet import Bullet
@@ -64,7 +64,6 @@ class Base:
         # self.path += self.filename  # condense file path into path variable
         self.difficulty = d
 
-
     # reset function
     def reset(self):
 
@@ -122,16 +121,22 @@ class Base:
         home_btn.draw(screen)
         self.game.display_box("Score: " + str(score), (80, 10), screen)
         # draw message center
-        self.game.display_box(message, ((screen_width/2)-50, screen_height - 30), screen)
+        self.game.display_box(message, ((screen_width / 2) - 50, screen_height - 30), screen)
         pygame.display.flip()
 
     def go(self):
         pass  # to be overridden
 
 
-
 class Reactive(Base):
     filename = "reactive_info.json"
+
+    def __init__(self, d):
+        super().__init__(d)
+        data_doc = json.load(open(self.path + self.filename, 'r'))  # load the file
+        self.score = data_doc["score"]
+        self.lives = data_doc["lives"]
+        self.level = data_doc["level"]
 
     def go(self):
         playing = self.playing
@@ -149,7 +154,6 @@ class Reactive(Base):
             for event in events:
                 if 'click' in home_btn.handleEvent(event):
                     self.data = {
-                        "saved_game": True,
                         "score": self.score,
                         "lives": self.lives,
                         "level": self.level,
@@ -191,6 +195,13 @@ class Reactive(Base):
 
 class Predictive(Base):
     filename = "predictive_info.json"
+
+    def __init__(self, d):
+        super().__init__(d)
+        data_doc = json.load(open(self.path + self.filename, 'r'))  # load the file
+        self.score = data_doc["score"]
+        self.lives = data_doc["lives"]
+        self.level = data_doc["level"]
 
     def go(self):
         pass
