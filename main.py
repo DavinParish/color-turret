@@ -49,12 +49,11 @@ for m in mode_list:
 data_doc = json.load(open(settings_path + settings_filename, 'r'))  # load the file
 difficulty = data_doc["difficulty"]
 mode = data_doc["mode"]
-# MODE = mode
+MODE = mode
 print(mode)
 print(difficulty)
 
 # other
-
 display = "home"
 playing = False
 

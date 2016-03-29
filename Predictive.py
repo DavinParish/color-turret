@@ -8,6 +8,8 @@ from base_mode import Base
 
 class Predictive(Base):
     filename = "predictive_info.json"
+    speed = 1
+    game_timer = pygame.time
 
     def __init__(self, d):
         super().__init__(d)
@@ -40,7 +42,6 @@ class Predictive(Base):
         game_bullet = self.game_bullet
         color_dict = self.game.color_dict
         home_btn = self.home_btn
-        speed = 1
         while playing:
             # Draw the board
             self.draw_game()
@@ -84,6 +85,6 @@ class Predictive(Base):
                     self.message = "Wrong color :("
                 self.reset()
             # WAIT
-            game_timer = pygame.time
-            game_timer.wait(int(speed))
+            print(self.speed)
+            self.game_timer.wait(int(self.speed))
 

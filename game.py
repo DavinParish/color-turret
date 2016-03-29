@@ -46,13 +46,13 @@ class Game:
         except OSError as exception:
             if exception.errno != errno.EEXIST:
                 raise
-
-    # creates the file if its not there
-    def initialize_json(self, filename, data):
-        # create the file
-        # input values
-        with open(filename, 'w') as outfile:
-            json.dump(data, outfile)
+    #
+    # # creates the file if its not there
+    # def initialize_json(self, filename, data):
+    #     # create the file
+    #     # input values
+    #     with open(filename, 'w') as outfile:
+    #         json.dump(data, outfile)
 
     # saves the file
     def save(self, path, filename, data):
