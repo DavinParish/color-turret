@@ -124,84 +124,10 @@ class Base:
         self.game.display_box(message, ((screen_width / 2) - 50, screen_height - 30), screen)
         pygame.display.flip()
 
+    def setScores(self):
+        pass
+
     def go(self):
         pass  # to be overridden
 
 
-class Reactive(Base):
-    filename = "reactive_info.json"
-
-    def __init__(self, d):
-        super().__init__(d)
-        data_doc = json.load(open(self.path + self.filename, 'r'))  # load the file
-        self.score = data_doc["score"]
-        self.lives = data_doc["lives"]
-        self.level = data_doc["level"]
-
-    def go(self):
-        playing = self.playing
-        game_target = self.game_target
-        game_bullet = self.game_bullet
-        color_dict = self.game.color_dict
-        home_btn = self.home_btn
-        while playing:
-            # Draw the board
-            self.draw_game()
-            self.decrement_life()
-            # check the buttons
-            # HANDLE KEY PRESSES
-            events = pygame.event.get()
-            for event in events:
-                if 'click' in home_btn.handleEvent(event):
-                    self.data = {
-                        "score": self.score,
-                        "lives": self.lives,
-                        "level": self.level,
-                    }
-                    self.game.save(self.path, self.filename, self.data)
-                    playing = False
-
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:
-                        quit()
-                    elif event.key in color_dict and not game_bullet.fired:
-                        game_bullet.color = color_dict[event.key]
-                        game_bullet.fired = True
-
-            # HANDLE FOR WHEN THE BULLET IS FIRED AND WHEN IT HITS
-            if game_bullet.fired:
-                print("fired")  # so I know the code has been reached
-
-                # MOVE THE BULLET
-                game_bullet.move()
-                print("moving")
-
-                # check for collision with target
-                if game_bullet.y == game_target.y:
-                    if game_bullet.color == game_target.color:
-                        self.score += 1  # increase self.score
-                        self.message = "Nice!!!"
-                    else:
-                        self.score -= 1  # increase self.score
-                        game_bullet.fired = False
-                        self.message = "Wrong color :("
-                    self.reset()
-            print("USER SCORE:")
-            print(self.score)
-            # WAIT
-            game_timer = pygame.time
-            game_timer.wait(int(self.game.speed))
-
-
-class Predictive(Base):
-    filename = "predictive_info.json"
-
-    def __init__(self, d):
-        super().__init__(d)
-        data_doc = json.load(open(self.path + self.filename, 'r'))  # load the file
-        self.score = data_doc["score"]
-        self.lives = data_doc["lives"]
-        self.level = data_doc["level"]
-
-    def go(self):
-        pass

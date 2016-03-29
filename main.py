@@ -1,6 +1,7 @@
 import json
 from button import *
-from base_mode import Reactive, Predictive
+from Reactive import Reactive
+from Predictive import Predictive
 import pygame
 from game import Game
 import pygame.font
@@ -26,7 +27,7 @@ info_path = "Files\info\\"
 default_info_dict = {
     "score": 0,
     "lives": 5,
-    "level": 1
+    "level": 1,
 }
 
 default_settings_dict = {
@@ -43,13 +44,12 @@ game.make_sure_path_exists(settings_path, settings_filename, default_settings_di
 #
 for m in mode_list:
     game.check_file(info_path, m + "_info.json", default_info_dict)
-    print(m + "_info.json")
 # otherwise read in the values
 
 data_doc = json.load(open(settings_path + settings_filename, 'r'))  # load the file
 difficulty = data_doc["difficulty"]
 mode = data_doc["mode"]
-MODE = mode
+# MODE = mode
 print(mode)
 print(difficulty)
 
@@ -81,14 +81,15 @@ screen_height = TILE_HEIGHT * num_rows
 screen = pygame.display.set_mode([screen_width, screen_height])
 
 # Instantiations /////////////////////////////////////////
+largest = len("new game")*10
 # modes
 reactive_mode = Reactive(difficulty)
 predictive_mode = Predictive(difficulty)
 # Buttons
-play_btn = PygButton(((screen_width / 2) - 30, screen_height / 2, 60, 30), "Play")
+play_btn = PygButton(((screen_width / 2) - largest/2, screen_height / 2, largest, 30), "Play")
 home_btn = PygButton((5, 5, 60, 30), "Home")
-options_btn = PygButton(((screen_width / 2) - 30, 300, 60, 30), "Options")
-new_btn = PygButton(((screen_width / 2) - 30, 260, len("new game")*10, 30), "New Game")
+options_btn = PygButton(((screen_width / 2) - largest/2, 300, largest, 30), "Options")
+new_btn = PygButton(((screen_width / 2) - 30, 260, largest, 30), "New Game")
 
 reactive_radio = check_button((100, 160, 80, 30), "reactive")
 predictive_radio = check_button((200, 160, 80, 30), "Predictive")
@@ -132,14 +133,15 @@ def draw_home(game_mode):
     info = json.load(open("Files\info\\" + game_mode + "_info.json", 'r'))  # load the file
     if default_info_dict["score"] != info["score"] or default_info_dict["level"] != info["level"]:
         # change the play button text to resume button
-        play_btn.caption = "resume"
+        play_btn.caption = "Resume"
         # position new and resume button
-        play_btn._rect = pygame.Rect(((screen_width / 2) - 30, (screen_height / 2)-40, 60, 30))
-        new_btn._rect = pygame.Rect(((screen_width / 2) - 30, (screen_height / 2), 60, 30))
+        play_btn._rect = pygame.Rect(((screen_width / 2) - largest/2, (screen_height / 2)-40, largest, 30))
+        new_btn._rect = pygame.Rect(((screen_width / 2) - largest/2, (screen_height / 2), largest, 30))
         # draw new button
         new_btn.draw(screen)
     else:
         play_btn.caption = "Play"
+        play_btn._rect = pygame.Rect((screen_width / 2) - largest/2, screen_height / 2, largest, 30)
 
     game.display_box("ColorWheel", ((screen_width / 2) - size_of_text("options Menu"), 0), screen)
 
@@ -190,6 +192,8 @@ mode_dict = {
 while 1 == 1:
     display_dict[display](mode)
     events = pygame.event.get()
+    # for mode in mode_dict:
+    #     mode_dict[mode].__init__(difficulty)
     for event in events:
         # Handle button clicks////////////////////////////
         if 'click' in play_btn.handleEvent(event):
@@ -213,7 +217,7 @@ while 1 == 1:
             playing = False
             mode = "reactive"
         elif 'click' in new_btn.handleEvent(event):
-            game.save(info_path, MODE + "_info.json", default_info_dict)
+            game.save(info_path, mode + "_info.json", default_info_dict)
             playing = True
 
         # TODO see if this is plausible
@@ -233,5 +237,7 @@ while 1 == 1:
 
         # Handle game loops
         if playing:
+            mode_dict[mode].setScores()
+            info = json.load(open("Files\info\\" + mode + "_info.json", 'r'))  # load the file
             mode_dict[mode].go()
             playing = False

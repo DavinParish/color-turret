@@ -43,14 +43,7 @@ class Game:
             os.makedirs(path)
             with open(path + filename, 'w') as outfile:
                 json.dump(data, outfile)
-            print("//////////////////////////////////////////////////////////")
-            print(path)
-            print("//////////////////////////////////////////////////////////")
-
         except OSError as exception:
-            print("//////////////////////////////////////////////////////////")
-            print("darn")
-            print("//////////////////////////////////////////////////////////")
             if exception.errno != errno.EEXIST:
                 raise
 
